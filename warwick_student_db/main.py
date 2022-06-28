@@ -121,7 +121,7 @@ def main():
     # check if file exists
     if os.path.exists(args.output):
         # if it does, ask if we should overwrite
-        print("File already exists. Overwrite? (y/n)")
+        print("File already exists. Overwrite? (y/n) ", end="")
         if input() != 'y':
             print("Exiting")
             sys.exit(0)
