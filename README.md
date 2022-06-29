@@ -6,7 +6,7 @@ This isnt a public tool and requires you to pass your browser cookie from your v
 use with caution
 
 ```bash
-pip install https://github.com/Blotz/warwick_student_db.git
+pip install git+https://github.com/Blotz/warwick_student_db.git
 python -m warwick_student_db --help
 ```
 
