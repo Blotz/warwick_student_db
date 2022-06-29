@@ -12,6 +12,7 @@ setup(
     install_requires=['requests',
                         'bs4',
                         'xlsxwriter',
+                        'aiohttp',
                         ],
 
     classifiers=[

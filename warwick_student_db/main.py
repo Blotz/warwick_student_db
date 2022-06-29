@@ -1,5 +1,5 @@
 #/usr/bin/env python3
-import datetime
+import asyncio
 import dataclasses
 import argparse
 import pathlib
@@ -10,6 +10,7 @@ import os
 import requests
 import bs4
 import xlsxwriter
+import aiohttp
 
 @dataclasses.dataclass
 class Student:
@@ -19,9 +20,12 @@ class Student:
     type: str
     year: int
     course: str
+    # optional pronoun
+    pronoun: str = ""
 
 BASE_URL = "https://tabula.warwick.ac.uk/"
 STUDENT_ENDPOINT = "profiles/department/ma/students/"
+STUDENT_PROFILE_ENDPOINT = "profiles/view/"
 
 def request_students(url, cookie):
     """
@@ -33,6 +37,24 @@ def request_students(url, cookie):
     }
     response = requests.request("GET", BASE_URL + url, headers=headers, data=payload)
     return response.text
+
+def parse_pronouns(student_soup):
+    """
+    Parse the pronouns from the soup
+    """
+    # find the pronouns
+    pronouns_soup = student_soup.find('div', class_='col-xs-12 col-md-7 col-lg-8')
+
+    if pronouns_soup is None:
+        return "unknown"
+    
+    pronouns_text_list = pronouns_soup.text.split('\n')
+    
+    for pronoun_text in pronouns_text_list:
+        if pronoun_text.startswith('Preferred pronouns'):
+            return pronoun_text.split(':')[1].strip()
+    else:
+        return None
 
 def parse_students(student_soup):
     """
@@ -81,6 +103,7 @@ def save_to_excel(output_file, students):
     worksheet.write('D1', 'Type', bold)
     worksheet.write('E1', 'Year', bold)
     worksheet.write('F1', 'Course', bold)
+    worksheet.write('G1', 'Pronouns', bold)
 
     row = 1
     col = 0
@@ -91,11 +114,20 @@ def save_to_excel(output_file, students):
         worksheet.write(row, col + 3, student.type)
         worksheet.write(row, col + 4, student.year)
         worksheet.write(row, col + 5, student.course)
+        worksheet.write(row, col + 6, student.pronouns)
         row += 1
 
     workbook.close()
 
-def main():
+async def request_student_profile(session, student):
+    """
+    Get the student profile
+    """
+    url = BASE_URL + STUDENT_PROFILE_ENDPOINT + student.id
+    async with session.get(url) as response:
+        return await response.text()
+
+async def main():
     argparser = argparse.ArgumentParser(description='Download students from the Warwick Student Database')
     argparser.add_argument('--year', type=int, help='Get all students from specific year', required=True)
     argparser.add_argument('--student-year', type=int, help='Get all students in a year')
@@ -145,10 +177,28 @@ def main():
     print("loading students")
     student_soup = bs4.BeautifulSoup(student_data, 'html.parser')
     students = parse_students(student_soup)
+
+    # async request student profiles with cookies
+    print("requesting student profiles")
+    async with aiohttp.ClientSession(headers={'Cookie': cookie}) as session:
+        tasks = []
+        for student in students:
+            tasks.append(request_student_profile(session, student))
+        student_profiles = await asyncio.gather(*tasks)
+    
+    # parse student profiles
+    print("parsing student profiles")
+    for i in range(len(students)):
+        student_soup = bs4.BeautifulSoup(student_profiles[i], 'html.parser')
+        students[i].pronouns = parse_pronouns(student_soup)
+    
     # save to excel documment
     print("Saving to " + args.output)
     save_to_excel(path, students)
 
 
+
 if __name__=="__main__":
-    main()
+    # run main
+    asyncio.run(main())
+    sys.exit(0)
