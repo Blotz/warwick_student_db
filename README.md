@@ -26,8 +26,10 @@ options:
 ```
 ```bash
 $ python -m warwick_student_db --year 2021 
-enter your browser cookie: COOOKIE_FROM_BROWSER
+enter your browser cookie: COOKIE_FROM_BROWSER
 Requesting students from 2021
 loading students
+requesting student profiles
+parsing student profiles
 Saving to ./students.xlsx
 ```
