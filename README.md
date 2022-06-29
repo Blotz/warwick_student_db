@@ -9,3 +9,25 @@ use with caution
 pip install https://github.com/Blotz/warwick_student_db.git
 python -m warwick_student_db --help
 ```
+
+```bash
+$ python -m warwick_student_db --help
+usage: __main__.py [-h] --year YEAR [--student-year STUDENT_YEAR] [--output OUTPUT]
+
+Download students from the Warwick Student Database
+
+options:
+  -h, --help            show this help message and exit
+  --year YEAR           Get all students from specific year
+  --student-year STUDENT_YEAR
+                        Get all students in a year
+  --output OUTPUT, -o OUTPUT
+                        Output file
+```
+```bash
+$ python -m warwick_student_db --year 2021 
+enter your browser cookie: COOOKIE_FROM_BROWSER
+Requesting students from 2021
+loading students
+Saving to ./students.xlsx
+```
