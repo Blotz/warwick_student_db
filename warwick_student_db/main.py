@@ -20,19 +20,19 @@ class Student:
     year: int
     course: str
 
-URL = "https://tabula.warwick.ac.uk/profiles/department/ma/students/"
+BASE_URL = "https://tabula.warwick.ac.uk/"
+STUDENT_ENDPOINT = "profiles/department/ma/students/"
 
-def request_students(url):
+def request_students(url, cookie):
     """
     Request all students from the MA department
     """
     payload={}
     headers = {
-    'Cookie': ''
+    'Cookie': cookie
     }
-    response = requests.request("GET", url, headers=headers, data=payload)
+    response = requests.request("GET", BASE_URL + url, headers=headers, data=payload)
     return response.text
-
 
 def parse_students(student_soup):
     """
@@ -104,7 +104,7 @@ def main():
 
     # parse output file
     # Check if file was supplied without the --output flag
-    if args.output is None and file is not None:
+    if args.output is None and len(file) > 0:
         args.output = file[0]
     elif args.output is None:
         args.output = "./students.xlsx"
@@ -130,14 +130,17 @@ def main():
             sys.exit(0)
 
     # format request url
-    url = URL + str(args.year) + "?studentsPerPage=10000"
+    url = STUDENT_ENDPOINT + str(args.year) + "?studentsPerPage=10000"
     if args.student_year:
         url = url + "&yearsOfStudy=" + str(args.student_year)
     
+    # enter cookie
+    print("enter your browser cookie: ", end="")
+    cookie = input()
     # print(url)
     # request students
     print("Requesting students from " + str(args.year))
-    student_data = request_students(url)
+    student_data = request_students(url, cookie)
     # search for students records
     print("loading students")
     student_soup = bs4.BeautifulSoup(student_data, 'html.parser')
