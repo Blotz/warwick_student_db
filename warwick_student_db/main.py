@@ -96,16 +96,19 @@ def save_to_excel(output_file, students):
     workbook.close()
 
 def main():
-    currentDate = datetime.date.today()
-    current_year = currentDate.year
-
     argparser = argparse.ArgumentParser(description='Download students from the Warwick Student Database')
-    argparser.add_argument('--year', type=int, help='Get all students from specific year', default=current_year)
+    argparser.add_argument('--year', type=int, help='Get all students from specific year', required=True)
     argparser.add_argument('--student-year', type=int, help='Get all students in a year')
-    argparser.add_argument('--output','-o', type=str, help='Output file', default='./students.xlsx')
-    args = argparser.parse_args()
+    argparser.add_argument('--output','-o', type=str, help='Output file', default=None)
+    args, file = argparser.parse_known_args()
 
     # parse output file
+    # Check if file was supplied without the --output flag
+    if args.output is None and file is not None:
+        args.output = file[0]
+    elif args.output is None:
+        args.output = "./students.xlsx"
+    
     # check if path ends in file
     path = pathlib.Path(args.output)
     dir_path = pathlib.Path(os.path.dirname(path))
